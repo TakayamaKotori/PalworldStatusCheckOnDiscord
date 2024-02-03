@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 停止メッセージを送信
-python3.12 palworldServerBackup.py
+python3.12 palworldServerBackupPleMessage.py
 
 # サービスの停止コマンド
 sudo systemctl stop palworld-dedicated.service
