@@ -13,7 +13,7 @@ logger = loggerUtil.getLogger(__name__, logFilePath)
 def sendServerMessage(MessageText):
     logger.debug("sendServerMessage")
     try:
-        rcon.callPalworldRcon(f"/Broadcast {MessageText}")
+        rcon.callPalworldRcon(f"Broadcast {MessageText}")
     except Exception as e:
         logger.error("サーバーへメッセージ送信失敗")
         logger.error(e)
