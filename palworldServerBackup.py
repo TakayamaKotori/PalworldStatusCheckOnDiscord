@@ -33,7 +33,7 @@ BackupGenerations = int(config_ini["DEFAULT"]["BackupGenerations"])
 
 
 # バックアップ元ディレクトリ
-SaveDir = int(config_ini["DEFAULT"]["SaveDir"])
+SaveDir = config_ini["DEFAULT"]["SaveDir"]
 
 
 # バックアップ先ディレクトリ
