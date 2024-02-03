@@ -1,0 +1,6 @@
+/setting_dev.ini
+/log/*.log
+/common/__pycache__/*.pyc
+/memory_logs/*.csv
+/memory_plt/*.png
+/*.csv
