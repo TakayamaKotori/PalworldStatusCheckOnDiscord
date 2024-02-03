@@ -20,25 +20,25 @@ def sendServerMessage(MessageText):
 
 
 def main():
-    sendServerMessage("The server will restart after 15 minutes.")
+    sendServerMessage("The_server_will_restart_after_15_minutes.")
     time.sleep(60 * int(5))
 
-    sendServerMessage("The server will restart after 10 minutes.")
+    sendServerMessage("The_server_will_restart_after_10_minutes.")
     time.sleep(60 * int(5))
 
-    sendServerMessage("The server will restart after 5 minutes.")
+    sendServerMessage("The_server_will_restart_after_5_minutes.")
     time.sleep(60 * int(1))
 
-    sendServerMessage("The server will restart after 4 minutes.")
+    sendServerMessage("The_server_will_restart_after_4_minutes.")
     time.sleep(60 * int(1))
 
-    sendServerMessage("The server will restart after 3 minutes.")
+    sendServerMessage("The_server_will_restart_after_3_minutes.")
     time.sleep(60 * int(1))
 
-    sendServerMessage("The server will restart after 2 minutes.")
+    sendServerMessage("The_server_will_restart_after_2_minutes.")
     time.sleep(60 * int(1))
 
-    sendServerMessage("The server will restart after 1 minutes.")
+    sendServerMessage("The_server_will_restart_after_1_minutes.")
     time.sleep(60 * int(1))
 
 
