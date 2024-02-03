@@ -10,4 +10,4 @@ sudo systemctl stop palworld-dedicated.service
 python3.12 palworldServerBackup.py
 
 # サービスの再起動コマンド
-sudo systemctl stop palworld-dedicated.service
+sudo systemctl start palworld-dedicated.service
