@@ -281,7 +281,7 @@ async def editStatus(
     embed.add_field(name="CPU\n使用率", value=str(cpuUsage) + "%")
     embed.add_field(name="メモリ\n使用率", value=str(memoryUsage) + "%")
     embed.add_field(name="スワップメモリ\n使用率", value=str(swapMemoryUsage) + "%")
-    embed.add_field(name="次回バックアップ実行時刻", value=nextBuckUptime)
+    embed.add_field(name="次回再起動＆バックアップ実行時刻", value=nextBuckUptime)
 
     footerMessage = (
         "サーバー不具合により一時的に" + ErrorCheckIntervalMin + "分間隔で確認中"

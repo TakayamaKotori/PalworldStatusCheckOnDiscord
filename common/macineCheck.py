@@ -41,7 +41,7 @@ def getMameryUsageDf():
 
 def getMacineUsage():
     # CPU使用状況を取得
-    cpu_usage = psutil.cpu_percent(interval=1)
+    cpu_usage = psutil.cpu_percent(interval=60)
     # メモリ使用状況を取得
     memory_usage = psutil.virtual_memory().percent
     # スワップメモリ使用状況を取得
