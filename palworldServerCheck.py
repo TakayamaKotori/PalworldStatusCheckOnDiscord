@@ -314,6 +314,7 @@ def getCronRunDate(cron_schedule, addMinites=0):
 
     # 現在の日時
     now = datetime.now(pytztimezone)
+    now = now - timedelta(minutes=addMinites)
 
     # croniterオブジェクトの作成（タイムゾーンを考慮）
     iter = croniter(cron_schedule, now, ret_type=float, day_or=True)
