@@ -23,6 +23,7 @@ def getLogger(name, logFilePath):
         interval=1,
         backupCount=7,
         atTime=datetime.time(0, 0, 0),
+        encoding="utf-8",
     )
 
     # test.logに出力するログレベルを個別でERRORに設定

@@ -1,5 +1,5 @@
 import psutil
-
+import asyncio
 import matplotlib.pyplot as plt
 import time
 import os
@@ -8,19 +8,19 @@ import re
 from common import discordTextMessage
 
 
-def memoryUsageToCsv(filePath):
-    df = getMameryUsageDf()
+async def memoryUsageToCsv(filePath):
+    df = await getMameryUsageDf()
     dfToDateCsv(df, filePath)
 
 
-def getMameryUsageDf():
+async def getMameryUsageDf():
 
     times = []
     cpu_usages = []
     memory_usages = []
     swap_usages = []
 
-    t, c, u, s = getMacineUsage()
+    t, c, u, s = await getMacineUsage_async()
 
     # メモリ使用状況を記録 [時刻,CPU使用率,メモリ使用率,スワップメモリ使用率]
     times.append(t)
@@ -51,6 +51,24 @@ def getMacineUsage():
     return current_time, cpu_usage, memory_usage, swap_usage
 
 
+async def getMacineUsage_async():
+    loop = asyncio.get_running_loop()
+    # 非同期で実行される関数を実行するためのexecutorを設定
+    # CPU使用状況を取得
+    cpu_usage = await loop.run_in_executor(
+        None, lambda: psutil.cpu_percent(interval=60)
+    )
+    # メモリ使用状況を取得
+    memory_usage = await loop.run_in_executor(
+        None, lambda: psutil.virtual_memory().percent
+    )
+    # スワップメモリ使用状況を取得
+    swap_usage = await loop.run_in_executor(None, lambda: psutil.swap_memory().percent)
+    # 現在の時刻を記録
+    current_time = time.strftime("%H:%M", time.localtime())
+    return current_time, cpu_usage, memory_usage, swap_usage
+
+
 data_csv_dir = "memory_logs"
 csv_prefix = "memory_log"
 csv_ext = "csv"
@@ -66,8 +84,10 @@ def getExistFilePath(fileName):
 
 def getOutPltFilePath(fileName):
 
-    pltFileName = fileName.replace(data_csv_dir + "\\", plt_png_dir + "\\").replace(
-        ".csv", ".png"
+    pltFileName = (
+        fileName.replace(data_csv_dir + "/", plt_png_dir + "/")
+        .replace(data_csv_dir + "\\", plt_png_dir + "\\")
+        .replace(".csv", ".png")
     )
     return pltFileName
 
@@ -143,7 +163,7 @@ def fileRotation():
     cleanup_old_files(plt_png_dir, file_extension=".png")
 
 
-async def run(client=None, channelId=None):
+async def run(logger, client=None, channelId=None):
 
     # ディレクトリが存在しない場合は作成
     if not os.path.exists(data_csv_dir):
@@ -151,6 +171,7 @@ async def run(client=None, channelId=None):
     if not os.path.exists(plt_png_dir):
         os.makedirs(plt_png_dir)
 
+    logger.info("ファイルチェック")
     latestFilePath = getLastFilePath()
 
     saveCsvFilePath = getOutCsvFilePath()
@@ -159,6 +180,7 @@ async def run(client=None, channelId=None):
     # これから処理するファイルが新規作成の場合は直前のデータは前日分
     # 最後のファイルをグラフに変換して出力
     if latestFilePath is not None and saveCsvFilePath != latestFilePath:
+        logger.info("グラフ出力")
         # 新規に作成する場合はファイル出力
         df = csvToDf(latestFilePath)
         plt.figure()
@@ -172,7 +194,9 @@ async def run(client=None, channelId=None):
                 client, channelId, file_name, pltFilePath, file_name
             )
 
-    memoryUsageToCsv(saveCsvFilePath)
+    logger.info("計測開始")
+    await memoryUsageToCsv(saveCsvFilePath)
+    logger.info("計測終了")
 
     fileRotation()
 

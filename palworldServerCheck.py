@@ -409,7 +409,7 @@ async def on_ready():
 
         getConfigFile()
 
-        lastCsvFilePath = await macineCheck.run(client, MacineStatusPostChannel)
+        lastCsvFilePath = macineCheck.getLastFilePath()
 
         await palworldServerCheck(lastCsvFilePath)
 
