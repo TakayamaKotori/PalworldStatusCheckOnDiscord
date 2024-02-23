@@ -3,11 +3,10 @@ import tarfile
 from datetime import datetime
 from pathlib import Path
 import configparser
-from common import rcon, loggerUtil
+from common import rcon, common, loggerUtil
 
 
-config_ini = configparser.ConfigParser()
-config_ini.read("setting.ini", encoding="utf-8")
+config_ini = common.getConfigFile()
 
 
 PalWorldServerIP = config_ini["DEFAULT"]["PalWorldServerIP"]
