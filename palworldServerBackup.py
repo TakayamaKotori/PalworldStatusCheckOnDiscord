@@ -2,8 +2,7 @@ import os
 import tarfile
 from datetime import datetime
 from pathlib import Path
-import configparser
-from common import rcon, common, loggerUtil
+from common import common, loggerUtil
 
 
 config_ini = common.getConfigFile()
@@ -16,15 +15,6 @@ PalworldPortRconPort = int(config_ini["DEFAULT"]["PalworldPortRconPort"])
 
 logFilePath = config_ini["DEFAULT"]["BackupLogFilePath"]
 logger = loggerUtil.getLogger(__name__, logFilePath)
-
-
-def sendServerMessage(MessageText):
-    logger.debug("getServerVersion")
-    try:
-        rcon.callPalworldRcon(f"/Broadcast {MessageText}")
-    except Exception as e:
-        logger.error("サーバーへメッセージ送信失敗")
-        logger.error(e)
 
 
 # 世代数（保持するファイルの数）

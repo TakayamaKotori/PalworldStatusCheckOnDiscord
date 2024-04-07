@@ -2,8 +2,7 @@ import discord
 import csv
 from datetime import datetime, timedelta, timezone
 import os
-import re
-from common import rcon, common, discordTextMessage, loggerUtil, macineCheck
+from common import palApi, common, discordTextMessage, loggerUtil, macineCheck
 import asyncio
 import pandas as pd
 from croniter import croniter
@@ -23,17 +22,14 @@ severVersion = "-"
 nameColumn = 0
 playeruidColumn = 1
 steamidColumn = 2
-
-logintimeColumnName = "logintime"
-logintimeColumn = 3
+levelColumn = 3
+locationXColumn = 4
+locationYColumn = 5
+logintimeColumn = 6
 
 serverOnline = False
 
 CheckInterval = 60 * int(5)
-
-# バージョンを抜き出す正規表現
-# "Welcome to Pal Server[v0.1.3.0] Takayama's Palworld Server"
-reg = "(?<=\[).+?(?=\])"
 
 
 def getConfigFile():
@@ -79,13 +75,23 @@ def readPlayersCsvRows():
     # 前回データ読み込み
     is_file = os.path.isfile(saveCsvPath)
     if is_file:
-        with open(saveCsvPath) as f:
+        with open(saveCsvPath, encoding="utf8") as f:
             reader = csv.reader(f)
             l = [row for row in reader]
             # グローバル変数へ保存
             beforeLoginData = l
     else:
-        beforeLoginData = [["name", "playeruid", "steamid", "logintime"]]
+        beforeLoginData = [
+            [
+                "name",
+                "playeruid",
+                "steamid",
+                "level",
+                "location_x",
+                "location_y",
+                "logintime",
+            ]
+        ]
 
 
 readPlayersCsvRows()
@@ -94,7 +100,7 @@ readPlayersCsvRows()
 def listWriteCsv(list):
     logger.debug("listWriteCsv")
 
-    with open(saveCsvPath, "w", newline="") as f:
+    with open(saveCsvPath, "w", newline="", encoding="utf8") as f:
         writer = csv.writer(f)
         writer.writerows(list)
 
@@ -103,9 +109,8 @@ def getServerVersion():
     logger.debug("getServerVersion")
     global severVersion, serverOnline
     try:
-        welcomeMessage = rcon.callPalworldRcon("Info")
-        versionInfo = re.findall(reg, welcomeMessage)
-        severVersion = versionInfo[0]
+        res = palApi.callPalworldGetApi("/v1/api/info")
+        severVersion = res["version"]
         serverOnline = True
     except Exception as e:
         serverOnline = False
@@ -113,39 +118,33 @@ def getServerVersion():
 
 def getCurrentPlayer():
     logger.debug("getCurrentPlayer")
-    global beforeLoginData
 
     currentPlayerCsvList = []
 
     # 現在のプレイヤー取得
-    currentPlayer = rcon.callPalworldRcon("ShowPlayers")
+    currentPlayer = palApi.callPalworldGetApi("/v1/api/players")
 
-    rows = currentPlayer.strip().splitlines()
-    for i in range(len(rows)):
-        rowList = rows[i].split(",")
-        if i == 0:
-            # ヘッダー確認
-            for j in range(len(rowList)):
-                if "name" == rowList[j]:
-                    nameColumn = j
-                if "playeruid" == rowList[j]:
-                    playeruidColumn = j
-                if "steamid" == rowList[j]:
-                    steamidColumn = j
-            # ヘッダー確認終了
+    headerRow = [
+        "name",
+        "playerId",
+        "userId",
+        "level",
+        "location_x",
+        "location_y",
+        "logintime",
+    ]
+    currentPlayerCsvList.append(headerRow)
 
+    for rowInfo in currentPlayer["players"]:
         replaceRow = []
+        replaceRow.append(rowInfo["name"])
+        replaceRow.append(rowInfo["playerId"])
+        replaceRow.append(rowInfo["userId"])
+        replaceRow.append(rowInfo["level"])
+        replaceRow.append(rowInfo["location_x"])
+        replaceRow.append(rowInfo["location_y"])
 
-        if 3 == len(rowList):
-            # 'name', 'playeruid', 'steamid'
-            replaceRow.append(rowList[nameColumn].strip())
-            replaceRow.append(rowList[playeruidColumn].strip())
-            replaceRow.append(rowList[steamidColumn].strip())
-
-            currentPlayerCsvList.append(replaceRow)
-
-    # ヘッダー追加
-    currentPlayerCsvList[0].append(logintimeColumnName)
+        currentPlayerCsvList.append(replaceRow)
 
     return currentPlayerCsvList
 
@@ -164,7 +163,7 @@ def checkMorePlayerRows(table1, table2, timeStr):
             if row2[playeruidColumn] == row1[playeruidColumn]:
                 break
         else:
-            if 3 == len(row2):
+            if 6 == len(row2):
                 row2.append(timeStr)
             moreList.append(row2)
     return moreList
