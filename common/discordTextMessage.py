@@ -13,6 +13,13 @@ async def editEmbed(client, embed, channelId, messageId):
     return await sent_message.edit(embed=embed)
 
 
+async def editContent(client, content, channelId, messageId):
+    channel = client.get_channel(channelId)
+    sent_message = channel.get_partial_message(messageId)
+
+    return await sent_message.edit(content=content)
+
+
 async def sendFileAndMessage(client, channelId, message, filePath, fileName):
     channel = client.get_channel(channelId)
 

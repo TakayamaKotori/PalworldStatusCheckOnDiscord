@@ -1,15 +1,19 @@
 import discord
-import configparser
-import sys
-
-config_ini = configparser.ConfigParser()
-config_ini.read("setting.ini", encoding="utf-8")
+from common import common
 
 
-DiscordBotToken = config_ini["DEFAULT"]["DiscordBotToken"]
+def getConfigFile():
+    global DiscordBotToken, StatusPostChannel, PlayerListPostChannel
 
-StatusPostChannel = int(config_ini["DEFAULT"]["StatusPostChannel"])
+    config_ini = common.getConfigFile()
 
+    DiscordBotToken = config_ini["DEFAULT"]["DiscordBotToken"]
+
+    StatusPostChannel = int(config_ini["DEFAULT"]["StatusPostChannel"])
+    PlayerListPostChannel = int(config_ini["DEFAULT"]["PlayerListPostChannel"])
+
+
+getConfigFile()
 
 # Intentsを定義
 intents = discord.Intents.default()
@@ -19,9 +23,17 @@ intents.all()
 client = discord.Client(intents=intents)
 
 
-@client.event
-# 今回はon_readyでログイン時に指定チャンネルにEmbedを送信させていますが、on_messageでユーザー入力に反応するときも要領は同じです。
-async def on_ready():
+async def sentMessage():
+
+    channel = client.get_channel(PlayerListPostChannel)
+    content = "initメッセージ"
+    await channel.send(content=content)
+
+    print("強制終了")
+    client.close()
+
+
+async def sentEmbed():
     embed = discord.Embed(  # Embedを定義する
         title="Example Embed",  # タイトル
         color=0x00FF00,  # フレーム色指定(今回は緑)
@@ -38,7 +50,9 @@ async def on_ready():
         url="https://image.example.com/thumbnail.png"
     )  # サムネイルとして小さい画像を設定できる
 
-    embed.set_image(url="https://image.example.com/main.png")  # 大きな画像タイルを設定できる
+    embed.set_image(
+        url="https://image.example.com/main.png"
+    )  # 大きな画像タイルを設定できる
 
     embed.add_field(name="フィールド１", value="値１")  # フィールドを追加。
     embed.add_field(name="フィールド２", value="値２-3")
@@ -54,6 +68,13 @@ async def on_ready():
 
     print("強制終了")
     client.close()
+
+
+@client.event
+# 今回はon_readyでログイン時に指定チャンネルにEmbedを送信させていますが、on_messageでユーザー入力に反応するときも要領は同じです。
+async def on_ready():
+    await sentEmbed()
+    await sentMessage()
 
 
 client.run(DiscordBotToken)

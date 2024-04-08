@@ -7,7 +7,7 @@ import asyncio
 import pandas as pd
 from croniter import croniter
 import pytz
-
+from tabulate import tabulate
 
 log_config_ini = common.getConfigFile()
 logFilePath = log_config_ini["DEFAULT"]["LogFilePath"]
@@ -37,6 +37,7 @@ def getConfigFile():
     global StatusPostChannel, LogPostChannel, MacineStatusPostChannel, StatusEditMessageId
     global CheckIntervalMin, ErrorCheckIntervalMin
     global StatusPostTitle, StatusAuthorImageUrl, StatusThumbnailUrl, StatusImage
+    global PlayerListPostChannel, PlayerListEditMessage
     global MaxPlayer, NomalCheckInterval, ErrorCheckInterval
     global crontab1, crontab2
 
@@ -46,6 +47,9 @@ def getConfigFile():
     MacineStatusPostChannel = int(config_ini["DEFAULT"]["MacineStatusPostChannel"])
     StatusPostChannel = int(config_ini["DEFAULT"]["StatusPostChannel"])
     StatusEditMessageId = int(config_ini["DEFAULT"]["StatusEditMessage"])
+
+    PlayerListPostChannel = int(config_ini["DEFAULT"]["PlayerListPostChannel"])
+    PlayerListEditMessage = int(config_ini["DEFAULT"]["PlayerListEditMessage"])
 
     CheckIntervalMin = config_ini["DEFAULT"]["CheckIntervalMin"]
     ErrorCheckIntervalMin = config_ini["DEFAULT"]["ErrorCheckIntervalMin"]
@@ -146,7 +150,7 @@ def getCurrentPlayer():
 
         currentPlayerCsvList.append(replaceRow)
 
-    return currentPlayerCsvList
+    return currentPlayerCsvList, currentPlayer
 
 
 def checkMorePlayerRows(table1, table2, timeStr):
@@ -169,6 +173,14 @@ def checkMorePlayerRows(table1, table2, timeStr):
     return moreList
 
 
+def getDiscordTableText(data, headerList, formats):
+    return (
+        "```"
+        + tabulate(data, headers=headerList, tablefmt=formats, numalign="right")
+        + "```"
+    )
+
+
 async def diffPlayerCheckAndGetPlayerCount():
     logger.debug("diffPlayerCheckAndGetPlayerCount")
     global beforeLoginData
@@ -179,10 +191,15 @@ async def diffPlayerCheckAndGetPlayerCount():
     # 文字列に変換
     tstr = dt_now_jst_aware.strftime("%Y-%m-%d %H:%M:%S")
 
-    currentPlayer = getCurrentPlayer()
+    currentPlayerCsvList, currentPlayer = getCurrentPlayer()
+    headerList = ["レベル", "プレイヤー名"]
+
+    data = [[player["level"], player["name"]] for player in currentPlayer["players"]]
+    postText = "プレイヤーリスト\n" + getDiscordTableText(data, headerList, "rst")
+    await editMessage(postText)
 
     # 増えたユーザー
-    addUserList = checkMorePlayerRows(beforeLoginData, currentPlayer, tstr)
+    addUserList = checkMorePlayerRows(beforeLoginData, currentPlayerCsvList, tstr)
     for addUser in addUserList:
         line = "Login: name: {0} , playeruId: {1} , steamId: {2}".format(
             str(addUser[nameColumn]),
@@ -193,7 +210,7 @@ async def diffPlayerCheckAndGetPlayerCount():
         await sendMessageLogChannel(line)
 
     # 減ったユーザー
-    decUserList = checkMorePlayerRows(currentPlayer, beforeLoginData, tstr)
+    decUserList = checkMorePlayerRows(currentPlayerCsvList, beforeLoginData, tstr)
     # プレイ時間を算出
     for decUser in decUserList:
         # 文字列日付をタイムゾーン付き変換
@@ -235,6 +252,13 @@ async def editEmbedStatusChannelMessage(embed):
     logger.debug("editEmbedStatusChannelMessage")
     await discordTextMessage.editEmbed(
         client, embed, StatusPostChannel, StatusEditMessageId
+    )
+
+
+async def editMessage(content):
+    logger.debug("editMessage")
+    await discordTextMessage.editContent(
+        client, content, PlayerListPostChannel, PlayerListEditMessage
     )
 
 
