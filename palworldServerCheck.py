@@ -174,6 +174,9 @@ def checkMorePlayerRows(table1, table2, timeStr):
 
 
 def getDiscordTableText(data, headerList, formats):
+    logger.debug("getDiscordTableText")
+    logger.debug(headerList)
+    logger.debug(data)
     return (
         "```"
         + tabulate(data, headers=headerList, tablefmt=formats, numalign="right")
@@ -257,6 +260,7 @@ async def editEmbedStatusChannelMessage(embed):
 
 async def editMessage(content):
     logger.debug("editMessage")
+    logger.debug(content)
     await discordTextMessage.editContent(
         client, content, PlayerListPostChannel, PlayerListEditMessage
     )
