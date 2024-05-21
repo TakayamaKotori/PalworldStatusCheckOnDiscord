@@ -308,7 +308,7 @@ async def editStatus(
     embed.add_field(name="CPU\n使用率", value=str(cpuUsage) + "%")
     embed.add_field(name="メモリ\n使用率", value=str(memoryUsage) + "%")
     embed.add_field(name="スワップメモリ\n使用率", value=str(swapMemoryUsage) + "%")
-    embed.add_field(name="次回再起動＆バックアップ実行時刻", value=nextBuckUptime)
+    embed.add_field(name="次回再起動", value=nextBuckUptime)
 
     footerMessage = (
         "サーバー不具合により一時的に" + ErrorCheckIntervalMin + "分間隔で確認中"
@@ -367,9 +367,16 @@ def getCronRunDate(cron_schedule, addMinites=0):
 
 def getNextCronRunDate(addMinites):
     # Crontab形式の日時指定
-    formatDate1, time1 = getCronRunDate(crontab1, addMinites)
+    if crontab1 != "":
+        formatDate1, time1 = getCronRunDate(crontab1, addMinites)
+    else:
+        return "予定無し"
 
-    formatDate2, time2 = getCronRunDate(crontab2, addMinites)
+    if crontab2 != "":
+        formatDate2, time2 = getCronRunDate(crontab2, addMinites)
+    else:
+        return formatDate1
+
     if time1 < time2:
         return formatDate1
     else:
